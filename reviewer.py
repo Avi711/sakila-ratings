@@ -20,7 +20,7 @@ def create_rating_table():
         return
     cursor.execute("""
         CREATE TABLE rating (
-          film_id SMALLINT,
+          film_id SMALLINT unsigned,
           reviewer_id INT, 
           rating DECIMAL(2,1),
           FOREIGN KEY (film_id) REFERENCES film(film_id),
@@ -68,10 +68,33 @@ def is_rating_valid(rating):
     pattern = re.compile(r"^\d\.\d$")
     return pattern.match(rating)
 
+def print_rating():
+    cursor.execute("""
+            select f.title, concat(rev.first_name, " ", rev.last_name), r.rating
+            from rating as r, film as f, reviewer as rev
+            where r.film_id = f.film_id AND r.reviewer_id = rev.reviewer_id
+            
+        """)
+    ratings = cursor.fetchall()
+    for rate in ratings:
+        print("Film name:", rate[0] + ",", "Full name:", rate[1] + ",", "Rating:", float(rate[2]))
+
+
+
+insert_to_rating_stm = "INSERT INTO rating (film_id, reviewer_id, rating) VALUES (%s, %s, %s)"
+update_to_rating_stm = "UPDATE rating SET rating = %s WHERE film_id = %s AND reviewer_id = %s"
+def add_rating(film_id, reviewer_id, rating):
+    cursor.execute(f"SELECT * FROM rating WHERE film_id = '{film_id}' AND reviewer_id = '{reviewer_id}';")
+    result = cursor.fetchall()
+    if result == []:
+        cursor.execute(insert_to_rating_stm, (film_id, reviewer_id, rating))
+    else:
+        cursor.execute(update_to_rating_stm, (rating, film_id, reviewer_id))
+
+
 
 create_reviewer_table()
-#create_rating_table()
-
+create_rating_table()
 
 customer_id = input("Please enter your id: ")
 result = find_customer_by_id(customer_id)
@@ -98,11 +121,9 @@ while(films == []):
             break
     film_name = input("The film doesn't exists please enter another name: ")
 
-print("film id:", film_id)
-
 rating = input("Please enter rating for the film: ")
 while (not is_rating_valid(rating)):
     rating = input("Invalid rating please enter valid rating: ")
 
-
-
+add_rating(film_id, result[0][0], rating)
+print_rating()
