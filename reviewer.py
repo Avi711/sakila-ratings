@@ -25,8 +25,9 @@ def create_rating_table():
           film_id SMALLINT unsigned,
           reviewer_id INT, 
           rating DECIMAL(2,1),
-          FOREIGN KEY (film_id) REFERENCES film(film_id),
-          FOREIGN KEY (reviewer_id) REFERENCES reviewer(reviewer_id)
+          primary key (film_id,reviewer_id),
+          FOREIGN KEY (film_id) REFERENCES film(film_id) ON DELETE CASCADE ON UPDATE CASCADE,
+          FOREIGN KEY (reviewer_id) REFERENCES reviewer(reviewer_id) ON DELETE CASCADE ON UPDATE CASCADE
         );
     """)
 
