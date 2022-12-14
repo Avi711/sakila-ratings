@@ -37,7 +37,7 @@ def create_reviewer_table():
         return
     cursor.execute("""
         CREATE TABLE reviewer (
-          reviewer_id INT AUTO_INCREMENT NOT NULL PRIMARY KEY,
+          reviewer_id INT NOT NULL PRIMARY KEY,
           first_name varchar(45),
           last_name varchar(45)
         );
@@ -50,7 +50,7 @@ def check_table_exists(table_name):
     return True if result != [] else False
 
 
-insert_to_reviewer_stm = "INSERT INTO reviewer (first_name, last_name) VALUES (%s, %s)"
+insert_to_reviewer_stm = "INSERT INTO reviewer (reviewer_id ,first_name, last_name) VALUES (%s ,%s, %s)"
 
 
 def find_customer_by_id(id):
@@ -63,14 +63,14 @@ def find_customer_by_id(id):
     return result
 
 
-def add_reviewer_by_name():
+def add_reviewer_by_name(reviewer_id):
 
     id = None
     while id == None:
         first_name = input("Please enter your first name: ")
         last_name = input("Please enter your last name: ")
         try:
-            cursor.execute(insert_to_reviewer_stm, (first_name, last_name))
+            cursor.execute(insert_to_reviewer_stm, (reviewer_id, first_name, last_name))
             id = cursor.lastrowid
         except:
             print("first name or last name too logn")
@@ -96,7 +96,7 @@ def print_rating():
             limit 100            
         """)
     ratings = cursor.fetchall()
-    for rate in ratings:
+    for rate in ratings[0:100]:
         print("Film name:", rate[0] + ",", "Full name:", rate[1] + ",", "Rating:", float(rate[2]))
 
 
@@ -118,14 +118,15 @@ create_rating_table()
 
 
 result = None
+customer_id = None
 while result == None:
     customer_id = input("Please enter your id: ")
     result = find_customer_by_id(customer_id)
 
-if (result == []):
-    result = add_reviewer_by_name()
-print("Hello,", result[0][1], result[0][2] + ".")
 
+if (result == []):
+    result = add_reviewer_by_name(customer_id)
+print("Hello,", result[0][1], result[0][2] + ".")
 film_name = input("Please enter film name to rate: ")
 films = []
 film_id = ""
@@ -150,7 +151,7 @@ while (not is_rating_valid(rating)):
     rating = input("Invalid rating please enter valid rating: ")
 
 try:
-    add_rating(film_id, result[0][0], rating)
+    add_rating(film_id, customer_id, rating)
 except:
-    print("couldn't add the rating")
+    print("couldn't add rating")
 print_rating()
